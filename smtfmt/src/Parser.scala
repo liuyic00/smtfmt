@@ -22,29 +22,30 @@ object SMT2Parser {
     simple_symbol
   )
 
-  def symbol(using p: P[?]): P[SSymbol] = P(
-    (rawSymbol ~ lineEnd).map(x => SSymbol(x._1, x._2))
+  // Match AST
+
+  def noNewLine(using p: P[?]): P[NoNewLine.type] = P(
+    (!(comment | newLine)).map(_ => NoNewLine)
   )
+  def newLine(using p: P[?]): P[NewLine.type] = P(
+    (CharsWhileIn(" \r\t") ~ &(lbc) | (&(lbc) ~ !End)).map(x => NewLine)
+  )
+  def comment(using p: P[?]): P[Comment] = P(
+    ";" ~~/ CharsWhile(!lbcs.contains(_)).!.map(Comment(_))
+  )
+  def blankLine(using p: P[?]): P[BlankLine] = P(newLine | comment)
+  def lineEnd(using p: P[?]): P[LineEnd]     = P(comment | newLine | noNewLine)
 
-  def expr(using p: P[?]): P[SExpr] = P(parenExpr | symbol)
-
+  def symbol(using p: P[?]): P[Symbol] = P(
+    (rawSymbol ~ lineEnd).map(x => Symbol(x._1, x._2))
+  )
   def parenExpr(using p: P[?]): P[ParenExpr] = P(
-    ("(" ~/ lineEnd ~ (expr | blank).rep ~ ")" ~ lineEnd).map(x => ParenExpr(x._2, x._1, x._3))
+    ("(" ~/ lineEnd ~ (expr | blankLine).rep ~ ")" ~ lineEnd)
+      .map(x => ParenExpr(x._2, x._1, x._3))
   )
+  def expr(using p: P[?]): P[Expr] = P(parenExpr | symbol)
 
-  def newLine(using p: P[?]): P[SNewLine.type] = P(
-    (CharsWhileIn(" \r\t") ~ &(lbc) | (&(lbc) ~ !End)).map(x => SNewLine)
-  )
-  def comment(using p: P[?]): P[SComment] = P(
-    ";" ~~/ CharsWhile(!lbcs.contains(_)).!.map(SComment(_))
-  )
-
-  def blank(using p: P[?]): P[SBlank] = P(newLine | comment)
-  def lineEnd(using p: P[?]): P[SLineEnd] = P(
-    ((comment | newLine).?.map(_.getOrElse(SNone)))
-  )
-
-  def file(using p: P[?]): P[Seq[ParenExpr | SBlank]] = P(
-    (blank | parenExpr).rep(sep = lbc) ~ lbc.? ~ End
+  def sfile(using p: P[?]): P[SFile] = P(
+    (parenExpr | blankLine).rep(sep = lbc).map(SFile(_)) ~ lbc.? ~ End
   )
 }
