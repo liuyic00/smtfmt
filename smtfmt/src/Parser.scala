@@ -45,7 +45,7 @@ object SMT2Parser {
   )
   def expr(using p: P[?]): P[Expr] = P(parenExpr | symbol)
 
-  def sfile(using p: P[?]): P[SFile] = P(
-    (parenExpr | blankLine).rep(sep = lbc).map(SFile(_)) ~ lbc.? ~ End
+  def block(using p: P[?]): P[Block] = P(
+    (parenExpr | blankLine).rep(sep = lbc).map(Block(_)) ~ lbc.? ~ End
   )
 }

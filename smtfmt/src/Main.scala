@@ -1,7 +1,7 @@
 package smtfmt
 
-object SMTFormatter extends App {
-  val formatter = Smt2Formatter()
+object SmtFmt extends App {
+  val formatter = SmtFormatter()
 
   print(
     formatter.format(
