@@ -41,18 +41,12 @@ import fastparse.*
 //}
 
 case class SmtFormatter() {
-  def wordPrinter(cst: CST): String = cst match {
-    case Block(contents)     => contents.map(wordPrinter).mkString(" ")
-    case NewLine             => "\n"
-    case Comment(text)       => s"<;$text>"
-    case Term(text)          => s"<$text>"
-    case ParenExpr(contents) => "(" + contents.map(wordPrinter).mkString(" ") + ")"
-  }
-  def splitToLines(contents: Seq[Element]): Seq[Seq[Element]] = {
+  def splitToLines(contents: Seq[Element], keepNewLine: Boolean = false): Seq[Seq[Element]] = {
     var lines = List.empty[Seq[Element]]
     var line  = List.empty[Element]
     contents.foreach {
       case NewLine =>
+        if keepNewLine then line = NewLine :: line
         lines = line.reverse :: lines
         line = Nil
       case x =>
@@ -61,32 +55,37 @@ case class SmtFormatter() {
     lines = line.reverse :: lines
     lines.reverse.toSeq
   }
+  def wordPrinter(cst: CST): String = cst match {
+    case Block(contents) => splitToLines(contents, true).map(_.map(wordPrinter).mkString(" ")).mkString
+    case NewLine         => "[\\n]\n"
+    case Comment(text)   => s"<;$text>"
+    case Term(text)      => s"<$text>"
+    case ParenExpr(contents) =>
+      "( " + splitToLines(contents, true).map(_.map(wordPrinter).mkString(" ")).mkString + " )"
+  }
   def printer(cst: CST): String = cst match
     case Block(contents) => splitToLines(contents).map(_.map(printer).mkString(" ")).mkString("\n")
     case NewLine         => "\n"
-    case Comment(text)   => s"; $text"
+    case Comment(text)   => if text.startsWith(" ") then s";$text" else s"; $text"
     case Term(text)      => s"$text"
     case ParenExpr(contents) =>
       "(" + ({
         val lines = splitToLines(contents)
           .map(_.map(printer).mkString(" "))
-        (lines.head +:
+        (lines.head.indent(1).strip().stripLineEnd +:
           lines.tail.map(line => line.indent(2).stripLineEnd)).mkString("\n")
       }) + ")"
 
   def format(input: String): String = {
     val parseResult = parse(input, SMT2Parser.block(using _))
     val someResult = parseResult match {
-      case Parsed.Success(value, _) =>
-        println(value)
-        Some(value)
+      case Parsed.Success(value, _) => Some(value)
       case f @ Parsed.Failure(label, index, extra) =>
         println(f)
         println(f.trace().longAggregateMsg)
         None
     }
 
-    someResult.map(wordPrinter).getOrElse(input) + "\n\n" +
-      someResult.map(printer).getOrElse(input)
+    someResult.map(printer).getOrElse(input)
   }
 }
