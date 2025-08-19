@@ -46,9 +46,9 @@ object IntegrationTests extends TestSuite {
            |  assert (= (bvadd a b) (_ bv0 32))
            |)
            |((aaa
-           |   bb
-           |   cc
-           | ) a)
+           |    bb
+           |    cc
+           |  ) a)
            |(check-sat)
            |""".stripMargin
       assert(result == expact)

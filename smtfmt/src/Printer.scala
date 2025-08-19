@@ -72,7 +72,7 @@ case class SmtFormatter() {
       "(" + ({
         val lines = splitToLines(contents)
           .map(_.map(printer).mkString(" "))
-        (lines.head.indent(1).strip().stripLineEnd +:
+        (lines.head.indent(2).strip().stripLineEnd +:
           lines.tail.map(line => line.indent(2).stripLineEnd)).mkString("\n")
       }) + ")"
 
