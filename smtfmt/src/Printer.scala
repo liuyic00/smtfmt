@@ -81,8 +81,9 @@ case class SmtFormatter() {
     val someResult = parseResult match {
       case Parsed.Success(value, _) => Some(value)
       case f @ Parsed.Failure(label, index, extra) =>
-        println(f)
-        println(f.trace().longAggregateMsg)
+        System.err.println(f)
+        System.err.println(f.trace().longAggregateMsg)
+        sys.error("Parsing failed")
         None
     }
 
