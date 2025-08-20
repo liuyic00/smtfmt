@@ -3,14 +3,15 @@
 package build
 import mill.*, scalalib.*
 
-object smtfmt extends ScalaModule {
+object smtfmt extends SbtModule {
   def scalaVersion = "3.7.1"
+  def moduleDir = super.moduleDir / os.up
   def mvnDeps = Seq(
     mvn"com.lihaoyi::mainargs:0.7.6",
     mvn"com.lihaoyi::fastparse:3.1.1"
   )
 
-   object test extends ScalaTests {
+   object test extends SbtTests {
     def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
     def testFramework = "utest.runner.Framework"
   }
