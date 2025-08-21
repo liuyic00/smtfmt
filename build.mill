@@ -11,7 +11,7 @@ object smtfmt extends SbtModule {
     mvn"com.lihaoyi::fastparse:3.1.1"
   )
 
-   object test extends SbtTests {
+  object test extends SbtTests {
     def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
     def testFramework = "utest.runner.Framework"
   }
