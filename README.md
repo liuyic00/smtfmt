@@ -49,7 +49,8 @@ Install the extension and add the following content to you `settings.json`:
       // The command will be run with a working directory of the workspace root.
       "command": "./smtfmt",  // or other path to call the executable file.
       "languages": [
-        "smt"
+        "smt",
+        "smt-lib"
       ]
     }
   ]
